@@ -1,12 +1,11 @@
 -- 𝒜𝓉𝓉𝑒𝓃𝓉𝒾𝑜𝓃 𝒸𝓇𝒾𝓃𝑔𝑒
 local tag = "OverBroDeathScreen"
 local tyanka = Material("ui/tyan", "smooth")
-local w, h = 0, 0
+local w, h, imageSize = 0, 0
 local time = 0.35
-local loop
 
 local function resolutionChanged()
-    w, h = ScrW(), ScrH()
+    w, h, imageSize = ScrW(), ScrH(), ScreenScale(256)
 end
 
 local SetColor = surface.SetDrawColor
@@ -17,8 +16,8 @@ local white_col = color_white
 
 local function Remove()
     hook.Remove("DrawOverlay", tag)
-    if IsValid(loop) then
-        loop:Stop()
+    if IsValid(OverBroDeathScreenSound) then
+        OverBroDeathScreenSound:Stop()
     end
 end
 
@@ -39,18 +38,22 @@ local function Create(ply)
 
         local x, y = w*mult, h*mult
         SetColor(white_col)
-        DrawRect((w-x)/2, (h-y), x, y)
+        DrawRect((w-x)/2, h-y, x, y)
         SetMaterial(tyanka)
-        local size = 512*mult
-        DrawTexturedRect((w/2 - size/2), (w/2-y/2)-size*0.75, size, size*2) --512, 512, 1024, 1024
+        local size = imageSize*mult
+        DrawTexturedRect((w - size)/2, h-size*2, size, size*2)
     end)
 
-    sound.PlayFile("sound/ui/flex.ogg", "noplay", function( station, errCode, errStr )
-        if IsValid(station)  then
+    if IsValid(OverBroDeathScreenSound) then
+        OverBroDeathScreenSound:Stop()
+    end
+
+    sound.PlayFile("sound/ui/flex.ogg", "noplay", function(station)
+        if IsValid(station) then
             station:Play()
-            loop = station
+            OverBroDeathScreenSound = station
         end
-    end )
+    end)
 end
 
 hook.Add("OnScreenSizeChanged", tag, function()

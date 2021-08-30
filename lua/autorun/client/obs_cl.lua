@@ -46,7 +46,7 @@ local function Create(ply)
     end)
 
     sound.PlayFile("sound/ui/flex.ogg", "noplay", function( station, errCode, errStr )
-        if IsValid( station ) then
+        if IsValid(station)  then
             station:Play()
             loop = station
         end

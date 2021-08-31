@@ -3,7 +3,7 @@ local tag = "OverBroDeathScreen"
 local tyanka = Material("ui/tyan", "smooth")
 local dof = Material("pp/dof")
 local w, h, imageSize = 0, 0
-local first_run = true
+local first_run = false
 local time = 0.5
 
 local Sounds = {

@@ -8,6 +8,7 @@ local time = 0.5
 
 local enable = CreateClientConVar("overbro_death_screen", "1", true, true, "Enable OverBro death screen"):GetBool()
 local screenShake = CreateClientConVar("overbro_screen_shake", "1", true, true, "Enable screen shake on OverBro death screen", 0, 1):GetBool()
+local nofirsttime = CreateClientConVar("overbro_nofirst_time", "0", true, true, "Enable infinity first time", 0, 1):GetBool()
 
 cvars.AddChangeCallback("overbro_death_screen", function(name, old, new)
     enable = tobool(new)
@@ -15,6 +16,10 @@ end, "overbro_ds")
 
 cvars.AddChangeCallback("overbro_screen_shake", function(name, old, new)
     screenShake = tobool(new)
+end, "overbro_ds")
+
+cvars.AddChangeCallback("overbro_nofirst_time", function(name, old, new)
+    nofirsttime = tobool(new)
 end, "overbro_ds")
 
 local Sounds = {
@@ -153,6 +158,9 @@ hook.Add("player_spawn", "PlayerSpawn", function(data)
             hook.Remove("DrawOverlay", tag)
             timer.Stop(tag)
             StopPlaying()
+            if nofirsttime then
+                first_run = false
+            end
         end
     end
 end)

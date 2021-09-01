@@ -6,6 +6,17 @@ local w, h, imageSize = 0, 0
 local first_run = false
 local time = 0.5
 
+local enable = CreateClientConVar("overbro_death_screen", "1", true, true, "Enable OverBro death screen"):GetBool()
+local screenShake = CreateClientConVar("overbro_screen_shake", "1", true, true, "Enable screen shake on OverBro death screen", 0, 1):GetBool()
+
+cvars.AddChangeCallback("overbro_death_screen", function(name, old, new)
+    enable = tobool(new)
+end, "overbro_ds")
+
+cvars.AddChangeCallback("overbro_screen_shake", function(name, old, new)
+    screenShake = tobool(new)
+end, "overbro_ds")
+
 local Sounds = {
     ["first_run"] = "sound/overbro_death_screen/first_run.ogg",
     ["pre_loop"] = "sound/overbro_death_screen/pre_loop.ogg",
@@ -66,7 +77,7 @@ local DrawTexturedRect = surface.DrawTexturedRect
 
 gameevent.Listen("entity_killed")
 hook.Add("entity_killed", "PlayerDeath", function(data)
-    if data.entindex_killed then
+    if enable and data.entindex_killed then
         local ply = Entity(data.entindex_killed)
         if IsValid(ply) and ply == LocalPlayer() then
             w, h, imageSize = ScrW(), ScrH(), ScreenScale(256)
@@ -75,8 +86,14 @@ hook.Add("entity_killed", "PlayerDeath", function(data)
             local delay = 0
             local mult = 0
             local fps = 0
-            
+
             hook.Add("DrawOverlay", tag, function()
+                if !enable then
+                    hook.Remove("DrawOverlay", tag)
+                    timer.Stop(tag)
+                    StopPlaying()
+                end
+
                 if first_run then
                     local curtime = CurTime()
                     if delay < curtime and mult <= 1 then 
@@ -93,6 +110,17 @@ hook.Add("entity_killed", "PlayerDeath", function(data)
                     SetMaterial(tyanka)
                     local size = imageSize*mult
                     DrawTexturedRect((w - size)/2, h-size*2, size, size*2)
+                elseif screenShake and IsValid(playing) then
+                    local bass, fft = 0, {}
+                    playing:FFT(fft, 6 )
+            
+                    for i = 1, 250 do
+                        if fft[i] then bass = math.max(bass, fft[i]*170) or 0 end
+                    end
+
+                    if bass > 50 then
+                        util.ScreenShake(Vector(), bass/10, 1/FrameTime(), 10, 0)
+                    end
                 end
             end)
             
@@ -119,7 +147,7 @@ end)
 
 gameevent.Listen("player_spawn")
 hook.Add("player_spawn", "PlayerSpawn", function(data)
-    if data.userid then
+    if enable and data.userid then
         local ply = Player(data.userid)
         if IsValid(ply) and ply == LocalPlayer() then
             hook.Remove("DrawOverlay", tag)
